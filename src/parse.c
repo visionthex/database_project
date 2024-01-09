@@ -11,6 +11,16 @@
 #include "common.h"
 #include "parse.h"
 
+void list_employees(struct dbheader_t *dbhdr, struct employee_t *employees) {
+  int i = 0;
+  for (; i < dbhdr->count; i++) {
+    printf("Employee %d\n", i);
+    printf("\tName: %s\n", employees[i].name);
+    printf("\tAddress: %s\n", employees[i].address);
+    printf("\tHours: %d\n", employees[i].hours);
+  }
+}
+
 void add_employee(struct dbheader_t *dbhdr, struct employee_t *employees, char *addstring) {
   printf("%s\n", addstring);
 
@@ -19,10 +29,12 @@ void add_employee(struct dbheader_t *dbhdr, struct employee_t *employees, char *
   char *hours = strtok(NULL, ",");
   printf("%s %s %s\n", name, addr, hours);
 
-  strncpy(employees[dbhdr->count-1].name, name, sizeof(employees[dbhdr->count-1].name));
-  strncpy(employees[dbhdr->count-1].address, addr, sizeof(employees[dbhdr->count-1].address));
+  strncpy(employees[dbhdr->count].name, name, sizeof(employees[dbhdr->count].name));
+  strncpy(employees[dbhdr->count].address, addr, sizeof(employees[dbhdr->count].address));
 
-  employees[dbhdr->count-1].hours = atoi(hours);
+  employees[dbhdr->count].hours = atoi(hours);
+
+  dbhdr->count += 1; // Increase the count after adding a new employee
 }
 
 int read_employees(int fd, struct dbheader_t *dbhdr, struct employee_t **employeesOut) {
@@ -40,11 +52,6 @@ int read_employees(int fd, struct dbheader_t *dbhdr, struct employee_t **employe
   }
 
   read(fd, employees, count * sizeof(struct employee_t));
-
-  int i = 0;
-  for (; i < count; i++) {
-    employees[i].hours = ntohl(employees[i].hours);
-  }
 
   *employeesOut = employees;
   return STATUS_SUCCESS;
